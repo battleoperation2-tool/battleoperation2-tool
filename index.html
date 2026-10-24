@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>バトオペ2 蓄積よろけヒット数計算</title>
+<style>
+:root{color-scheme:dark;--bg:#10141d;--panel:#1a2130;--line:#303b50;--text:#eef3fb;--muted:#aab7ca;--accent:#69b7ff;--good:#70dfb0;--warn:#ffd479}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Noto Sans JP",sans-serif}main{max-width:1000px;margin:auto;padding:18px}h1{font-size:clamp(1.3rem,3vw,2rem);margin:0 0 8px}h2{font-size:1.08rem;margin:0 0 12px}.intro,.hint,.muted{color:var(--muted)}.intro{margin:0 0 18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin:13px 0}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}label{display:block;color:var(--muted);font-size:.84rem;margin-bottom:5px}input,select,button{font:inherit}input,select{width:100%;min-width:0;background:#0f1520;color:var(--text);border:1px solid #43516a;border-radius:8px;padding:9px}button{border:1px solid #4b607d;border-radius:9px;padding:9px 13px;background:#25344a;color:var(--text);cursor:pointer}.primary{background:#1768a8;border-color:#3188ce}.danger{background:#40252c;border-color:#7b404d}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:590px}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:.82rem;font-weight:600}td input{min-width:75px}.weapon-name{min-width:130px}.smallbtn{padding:6px 9px;font-size:.84rem}.seqrow{display:grid;grid-template-columns:minmax(0,2fr) minmax(90px,1fr) auto;gap:8px;align-items:end;margin:8px 0}.seqrow label{margin:0}.result{background:#111a27;border:1px solid var(--line);border-radius:12px;padding:16px}.big{font-size:2rem;font-weight:800;color:var(--good)}.status{margin-top:8px;color:var(--muted)}.notice{color:var(--warn);font-size:.88rem}.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.chartwrap{width:100%;overflow-x:auto;margin-top:14px;background:#0d1420;border:1px solid var(--line);border-radius:10px;padding:8px}.chartwrap svg{display:block;width:100%;min-width:320px;height:auto}.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:.82rem;color:var(--muted);margin:8px 2px}.legend span{display:inline-flex;align-items:center;gap:5px}.swatch{display:inline-block;width:16px;height:3px;border-radius:2px}.history{font-size:.88rem}.history td,.history th{padding:6px}.chart-title{margin:14px 0 4px;font-size:.95rem}.history-details{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#111a27}.history-details summary{cursor:pointer;font-weight:600;color:var(--muted);padding:3px 0}.history-details[open] summary{margin-bottom:10px;color:var(--text)}.kpi{background:#111a27;border:1px solid var(--line);border-radius:10px;padding:12px}.kpi strong{display:block;font-size:1.5rem}footer{color:var(--muted);font-size:.82rem;padding:10px 2px 25px}@media(max-width:650px){main{padding:11px}.grid{grid-template-columns:1fr 1fr}.panel{padding:12px}.kpis{grid-template-columns:1fr}.seqrow{grid-template-columns:minmax(0,1fr) 85px auto}}
+</style>
+</head>
+<body><main>
+<h1>バトオペ2 蓄積よろけヒット数計算</h1>
+<p class="intro">武器ごとの蓄積値とリアクションを設定し、よろけるまでに必要なヒット数を計算します。蓄積減衰や武器切り替え時間は計算しません。</p>
+
+<section class="panel">
+<h2>1. 相手のスキル設定</h2>
+<div>
+<label>相手のスキル（複数選択可）</label>
+<div id="skills"></div>
+<div class="actions"><button type="button" class="primary" id="addSkill">＋ スキルを追加</button></div>
+<p class="hint">発動条件を満たしているスキルを選んでください。</p>
+<p class="hint">カスタムでは、よろけ閾値を任意の数値に設定できます。追加のカスタム軽減率には、スキル一覧にない軽減率を入力してください。</p>
+</div>
+<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+<h3 style="font-size:.98rem;margin:0 0 10px">カスタム設定</h3>
+<div class="grid">
+<div><label for="thresholdPreset">よろけ閾値プリセット</label><select id="thresholdPreset"><option value="100">通常（100%）</option><option value="130">ダメージコントロール Lv1（130%）</option><option value="160">ダメージコントロール Lv2（160%）</option><option value="200">ダメージコントロール Lv3（200%）</option><option value="250">ダメージコントロール Lv4（250%）</option><option value="custom">カスタム</option></select></div>
+<div><label for="threshold">よろけ閾値（%）</label><input id="threshold" type="number" min="1" max="1000" step="1" value="100"></div>
+<div><label for="stackMode">軽減率の適用方式</label><select id="stackMode"><option value="add">加算（合計値を軽減）</option><option value="multiplicative">乗算（各スキルを順に適用）</option><option value="max">最大値のみ適用</option></select></div>
+<div><label for="customResist">追加のカスタム軽減率（%）</label><input id="customResist" type="number" min="0" max="99.9" step=".1" value="0"></div>
+</div>
+
+</div>
+</section>
+
+
+
+<section class="panel">
+<h2>2. 武器データ</h2>
+<p class="hint">武器名・リアクション・蓄積値・1回の発射で当たるヒット数を編集できます。ハイ・マニューバーアーマー選択中に「大よろけ」の武器が当たる場合は、簡易補正を適用します。</p>
+<div class="tablewrap"><table id="weaponTable"><thead><tr><th>武器名</th><th>リアクション</th><th>蓄積/ヒット (%)</th><th>1回の発射のヒット数</th><th></th></tr></thead><tbody></tbody></table></div>
+<div class="actions"><button class="primary" id="addWeapon">＋ 武器を追加</button><button id="sample">サンプルに戻す</button></div>
+</section>
+
+<section class="panel">
+<h2>3. コンボ設定</h2>
+<p class="hint">上から順に武器を使います。命中数は「発射回数」です。命中しない弾は計算に含めません。</p>
+<div id="sequence"></div>
+<div class="actions"><button class="primary" id="addStep">＋ コンボ行を追加</button><button class="primary" id="calculate">必要ヒット数を計算</button><button id="clearSequence">コンボをクリア</button></div>
+</section>
+
+<section class="panel">
+<h2>4. 結果</h2>
+<div class="result">
+<div class="kpis">
+<div class="kpi"><span class="muted">よろけ成立</span><strong id="status">未計算</strong></div>
+<div class="kpi"><span class="muted">成立までの合計ヒット数</span><strong id="hits">—</strong></div>
+<div class="kpi"><span class="muted">現在の蓄積合計値</span><strong id="currentAccumulation">—</strong></div>
+<div class="kpi"><span class="muted">よろけまで残り</span><strong id="remainingAccumulation">—</strong></div>
+</div>
+<p id="message" class="status">武器とコンボを設定して計算してください。</p>
+<p id="details" class="hint"></p>
+<h3 class="chart-title">蓄積値の推移</h3><div class="legend"><span><i class="swatch" style="background:#69b7ff"></i>蓄積値</span><span><i class="swatch" style="background:#ff817a"></i>よろけ閾値</span><span><i class="swatch" style="background:#70dfb0"></i>成立した攻撃</span></div><div id="chart" class="chartwrap"><p class="muted">計算するとグラフが表示されます。</p></div><details class="history-details"><summary>攻撃ごとの内訳を表示</summary><div class="tablewrap"><table class="history" id="history"><thead><tr><th>ヒット</th><th>武器</th><th>リアクション</th><th>今回の蓄積</th><th>累計蓄積</th><th>結果</th></tr></thead><tbody></tbody></table></div></details>
+</div>
+</section>
+<footer>非公式のファン向け計算補助ツールです。必要に応じて各武器の数値を編集してください。蓄積減衰・武器切り替え時間は計算に含めていません。</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let weapons=[],steps=[],skillRows=[],nextSkillId=1;
+const skillPresets=[
+ // 攻略Wikiで蓄積よろけ値そのものを軽減すると確認できる、複数機体で使えるスキルに限定。
+ // rate は「受けたよろけ値を何％軽減するか」。発動条件を満たしている場合のみ選択する。
+ {name:"マニューバーアーマー Lv2（高速移動中）",rate:20,kind:"reduction"},
+ {name:"マニューバーアーマー Lv3（高速移動中）",rate:30,kind:"reduction"},
+ {name:"マニューバーアーマー Lv4（高速移動中）",rate:40,kind:"reduction"},
+ {name:"マニューバーアーマー Lv5（高速移動中）",rate:50,kind:"reduction"},
+ {name:"ハイ・マニューバーアーマー Lv1（高速移動中）",rate:50,kind:"reduction"},
+ {name:"変形補強機構 Lv1（変形中）",rate:50,kind:"reduction"},
+ {name:"カスタム軽減率（率のみ設定）",rate:0,kind:"custom"}
+];
+const defaults=[
+ {name:"ハイパー・バズーカ",reaction:"よろけ",acc:80,hits:1},
+ {name:"ガンダム用ビーム・ライフル（ノンチャージ）",reaction:"ひるみ",acc:20,hits:1},
+ {name:"ガンダム用ビーム・ライフル（フルチャージ）",reaction:"よろけ",acc:80,hits:1},
+ {name:"Bライフル付属スーパー・ナパーム",reaction:"よろけ",acc:70,hits:1},
+ {name:"頭部バルカン",reaction:"ひるみ",acc:2,hits:1}
+];
+function n(v,f=0){const x=Number(v);return Number.isFinite(x)?x:f}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function selectedThreshold(){
+ const dc=skillRows.map(sk=>skillPresets.find(p=>p.name===sk.name)).filter(p=>p&&p.kind==="threshold");
+ if(dc.length){return Math.max(...dc.map(p=>p.threshold))}
+ return Math.max(.01,n($("threshold").value,100));
+}
+function syncThresholdFromSkills(){
+ const dc=skillRows.map(sk=>skillPresets.find(p=>p.name===sk.name)).filter(p=>p&&p.kind==="threshold");
+ if(dc.length){
+  const v=Math.max(...dc.map(p=>p.threshold));
+  $("threshold").value=String(v);
+  $("thresholdPreset").value=String(v);
+ }
+ // 閾値プリセットをスキル操作で勝手に「カスタム」へ変更しない。
+ // 手動で閾値を編集した場合は、threshold の input イベント側でカスタムに切り替える。
+}
+function init(){weapons=defaults.map((w,i)=>({...w,id:i+1}));steps=[{wid:1,count:1},{wid:5,count:10}];skillRows=[];$("threshold").value="100";$("thresholdPreset").value="100";$("customResist").value="0";$("stackMode").value="multiplicative";renderSkills();renderWeapons();renderSteps();calculate()}
+function renderSkills(){
+ const box=$("skills");box.innerHTML="";
+ skillRows.forEach((sk,i)=>{
+  const row=document.createElement("div");row.className="grid two";row.style.margin="8px 0";
+  const options=skillPresets.map(p=>`<option value="${esc(p.name)}" ${p.name===sk.name?"selected":""}>${esc(p.name)}</option>`).join("");
+  row.innerHTML=`<div><label>スキル ${i+1}</label><select data-skill="${i}" data-skey="name">${options}</select></div><div><label>蓄積軽減率（%）</label><div style="display:flex;gap:7px"><input style="flex:1" type="number" min="0" max="99.9" step=".1" data-skill="${i}" data-skey="rate" value="${sk.rate}"><button type="button" class="danger smallbtn" data-skilldel="${i}">削除</button></div></div>`;
+  box.appendChild(row);
+ });
+ box.querySelectorAll("select,input").forEach(el=>el.addEventListener("change",()=>{
+  const sk=skillRows[+el.dataset.skill],key=el.dataset.skey;
+  if(key==="name"){sk.name=el.value;const p=skillPresets.find(x=>x.name===el.value);if(p)sk.rate=p.kind==="custom"?0:p.rate;syncThresholdFromSkills();renderSkills();calculate();}
+  else {sk.rate=Math.min(99.9,Math.max(0,n(el.value,0)));calculate();}
+ }));
+ box.querySelectorAll("[data-skilldel]").forEach(b=>b.onclick=()=>{skillRows.splice(+b.dataset.skilldel,1);syncThresholdFromSkills();renderSkills();calculate()});
+}
+function addSkill(){skillRows.push({id:nextSkillId++,name:"マニューバーアーマー Lv2（高速移動中）",rate:20});renderSkills();calculate()}
+function renderWeapons(){const tb=$("weaponTable").querySelector("tbody");tb.innerHTML="";
+ weapons.forEach((w,i)=>{const tr=document.createElement("tr");
+ tr.innerHTML=`<td><input class="weapon-name" data-i="${i}" data-k="name" value="${esc(w.name)}" aria-label="武器名"></td><td><select data-i="${i}" data-k="reaction" aria-label="リアクション">${["なし","ひるみ","よろけ","大よろけ","転倒"].map(v=>`<option value="${v}" ${(w.reaction||"なし")===v?"selected":""}>${v}</option>`).join("")}</select></td><td><input type="number" min="0" step=".1" data-i="${i}" data-k="acc" value="${w.acc}" aria-label="蓄積/ヒット"></td><td><input type="number" min="1" step="1" data-i="${i}" data-k="hits" value="${w.hits}" aria-label="1回の発射のヒット数"></td><td><button class="danger smallbtn" data-remove="${i}">削除</button></td>`;
+ tb.appendChild(tr)});
+ tb.querySelectorAll("input,select").forEach(el=>el.addEventListener("change",()=>{
+  const w=weapons[+el.dataset.i],k=el.dataset.k;
+  w[k]=k==="name"||k==="reaction"?el.value:n(el.value,0);renderSteps();calculate();
+ }));
+ tb.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{const id=weapons[+b.dataset.remove].id;weapons=weapons.filter(w=>w.id!==id);steps=steps.filter(s=>s.wid!==id);renderWeapons();renderSteps();calculate()});
+}
+function renderSteps(){const box=$("sequence");box.innerHTML="";if(!steps.length){box.innerHTML='<p class="muted">コンボ行がありません。行を追加してください。</p>';return}
+ steps.forEach((s,i)=>{const row=document.createElement("div");row.className="seqrow";const opts=weapons.map(w=>`<option value="${w.id}" ${w.id===s.wid?"selected":""}>${esc(w.name)}（${esc(w.reaction||"なし")}）</option>`).join("");row.innerHTML=`<label>ステップ ${i+1}<select data-step="${i}" data-key="wid">${opts||'<option value="0">武器を登録してください</option>'}</select></label><label>発射回数<input type="number" min="1" step="1" data-step="${i}" data-key="count" value="${s.count}"></label><button class="danger smallbtn" data-del="${i}">削除</button>`;box.appendChild(row)});
+ box.querySelectorAll("select,input").forEach(el=>el.addEventListener("change",()=>{const s=steps[+el.dataset.step];s[el.dataset.key]=el.dataset.key==="wid"?n(el.value,0):Math.max(1,Math.floor(n(el.value,1)))}));
+ box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{steps.splice(+b.dataset.del,1);renderSteps()});
+}
+function addWeapon(){weapons.push({id:Math.max(0,...weapons.map(w=>w.id))+1,name:"新しい武器",reaction:"なし",acc:10,hits:1});renderWeapons();renderSteps();calculate()}
+function calculate(){
+ const threshold=selectedThreshold();
+ const custom=Math.min(99.9,Math.max(0,n($("customResist").value,0)));
+ const mode=$("stackMode").value;
+ const reductionSkills=skillRows.filter(sk=>{const p=skillPresets.find(x=>x.name===sk.name);return !p||p.kind!=="threshold";});
+ let combined=0;
+ if(mode==="add") combined=Math.min(99.9,reductionSkills.reduce((sum,sk)=>sum+Math.max(0,n(sk.rate,0)),0)+custom);
+ else if(mode==="multiplicative") combined=100*(1-reductionSkills.reduce((factor,sk)=>factor*(1-Math.min(99.9,Math.max(0,n(sk.rate,0)))/100),1)*(1-custom/100));
+ else combined=Math.min(99.9,Math.max(custom,...reductionSkills.map(sk=>Math.max(0,n(sk.rate,0)))));
+ const resist=Math.min(99.9,combined),factor=1-resist/100;
+ let totalHits=0,acc=0,used="",needed=0,success=false;
+ const history=[];
+ for(const s of steps){const w=weapons.find(x=>x.id===n(s.wid,-1));if(!w)continue;
+  const shots=Math.max(0,Math.floor(n(s.count,0)));
+  for(let j=0;j<shots;j++){
+   for(let h=0;h<Math.max(1,Math.floor(n(w.hits,1)));h++){
+    totalHits++;
+    // 軽減後の蓄積値は、ヒットごとに小数点以下を切り捨ててから累計する。
+    let add=Math.floor(Math.max(0,n(w.acc,0))*factor);
+    const hasHMA=reductionSkills.some(sk=>sk.name.startsWith("ハイ・マニューバーアーマー"));
+    let reactionBonus=0;
+    if(hasHMA && w.reaction==="大よろけ"){reactionBonus=20;add+=reactionBonus;}
+    acc+=add;
+    const hitSuccess=acc>=threshold;
+    history.push({hit:totalHits,weapon:w.name,reaction:w.reaction||"なし",baseAdd:Math.floor(Math.max(0,n(w.acc,0))*factor),reactionBonus,add,acc,success:hitSuccess});
+    if(hitSuccess){success=true;needed=totalHits;used=w.name;break}
+   }
+   if(success)break;
+  }if(success)break;
+ }
+ $("status").textContent=success?"成立":"未成立";$("status").style.color=success?"var(--good)":"var(--warn)";$("hits").textContent=success?needed+" ヒット":"—";$("currentAccumulation").textContent=acc.toFixed(1)+"%";$("remainingAccumulation").textContent=success?"":Math.max(0,threshold-acc).toFixed(1)+"%";$("remainingAccumulation").parentElement.style.display=success?"none":"";
+ $("message").textContent=success?`「${used}」の命中でよろけ成立。`:`設定したコンボ内では閾値 ${threshold}% に到達しません。`;
+ const activeSkills=skillRows.length?skillRows.map(sk=>{const p=skillPresets.find(x=>x.name===sk.name);return p&&p.kind==="threshold"?sk.name:`${sk.name} ${n(sk.rate,0).toFixed(1)}%軽減`;}).join("、"):"なし";
+ $("details").textContent=`設定スキル：${activeSkills} ／ よろけ閾値：${threshold}% ／ 追加軽減：${custom.toFixed(1)}% ／ 適用後の蓄積軽減率：${resist.toFixed(1)}%（${mode==="add"?"加算":mode==="multiplicative"?"乗算":"最大値のみ"}）`;
+ renderChart(history,threshold);
+ const tbody=$("history").querySelector("tbody");tbody.innerHTML=history.length?history.map(r=>`<tr style="${r.success?'color:var(--good);font-weight:700':''}"><td>${r.hit}</td><td>${esc(r.weapon)}</td><td>${esc(r.reaction)}</td><td>+${r.add.toFixed(1)}%${r.reactionBonus?`（リアクション補正 +${r.reactionBonus}%）`:""}</td><td>${r.acc.toFixed(1)}%</td><td>${r.success?"よろけ成立":"蓄積中"}</td></tr>`).join(""):'<tr><td colspan="6" class="muted">有効なコンボを設定してください。</td></tr>';
+}
+function renderChart(history,threshold){
+ const box=$("chart");if(!history.length){box.innerHTML='<p class="muted">有効なコンボを設定してください。</p>';return}
+ const W=760,H=300,L=54,R=18,T=18,B=42,iw=W-L-R,ih=H-T-B;
+ const maxX=Math.max(2,history.length),maxY=Math.max(threshold*1.2,Math.ceil(Math.max(threshold,...history.map(x=>x.acc))*1.12/10)*10);
+ const X=i=>L+(i/maxX)*iw,Y=v=>T+ih-(v/maxY)*ih;
+ let grid='';for(let i=0;i<=4;i++){const val=maxY*i/4,y=Y(val);grid+=`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#303b50"/><text x="${L-8}" y="${y+4}" text-anchor="end" fill="#aab7ca" font-size="11">${val.toFixed(0)}%</text>`}
+ const points=[` ${X(0)},${Y(0)}`, ...history.map(r=>`${X(r.hit)},${Y(r.acc)}`)].join(' ');
+ const thresholdY=Y(threshold),last=history[history.length-1],hitX=X(last.hit),hitY=Y(last.acc);
+ const circles=history.map(r=>`<circle cx="${X(r.hit)}" cy="${Y(r.acc)}" r="${r.success?5:2.8}" fill="${r.success?'#70dfb0':'#69b7ff'}"><title>${r.hit}ヒット：${r.acc.toFixed(1)}%</title></circle>`).join('');
+ box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ヒット数ごとの累計蓄積値グラフ">${grid}<line x1="${L}" y1="${thresholdY}" x2="${W-R}" y2="${thresholdY}" stroke="#ff817a" stroke-width="2" stroke-dasharray="7 5"/><text x="${W-R-2}" y="${thresholdY-7}" text-anchor="end" fill="#ff817a" font-size="12">よろけ閾値 ${threshold}%</text><polyline points="${points}" fill="none" stroke="#69b7ff" stroke-width="3" stroke-linejoin="round"/>${circles}<line x1="${L}" y1="${T+ih}" x2="${W-R}" y2="${T+ih}" stroke="#8795aa"/><text x="${L+iw/2}" y="${H-8}" text-anchor="middle" fill="#aab7ca" font-size="12">累計ヒット数</text><text x="14" y="${T+ih/2}" transform="rotate(-90 14 ${T+ih/2})" text-anchor="middle" fill="#aab7ca" font-size="12">蓄積値 (%)</text><text x="${Math.min(W-R-4,hitX+8)}" y="${Math.max(T+12,hitY-12)}" fill="#70dfb0" font-size="12">${last.success?'よろけ成立':''}</text></svg>`;
+}
+$("addSkill").onclick=addSkill;
+$("customResist").addEventListener("input",calculate);
+$("stackMode").addEventListener("change",calculate);
+$("threshold").addEventListener("input",()=>{$("thresholdPreset").value="custom";skillRows=skillRows.filter(sk=>{const p=skillPresets.find(x=>x.name===sk.name);return !p||p.kind!=="threshold"});renderSkills();calculate()});
+$("thresholdPreset").addEventListener("change",()=>{skillRows=skillRows.filter(sk=>{const p=skillPresets.find(x=>x.name===sk.name);return !p||p.kind!=="threshold"});if($("thresholdPreset").value!=="custom")$("threshold").value=$("thresholdPreset").value;renderSkills();calculate()});
+
+$("addWeapon").onclick=addWeapon;$("addStep").onclick=()=>{steps.push({wid:weapons[0]?.id||0,count:1});renderSteps()};$("calculate").onclick=calculate;$("clearSequence").onclick=()=>{steps=[];renderSteps();calculate()};$("sample").onclick=init;init();
+</script></body></html>
