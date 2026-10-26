@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>バトオペ2 部位耐久計算ツール</title>
+<style>
+body {
+  background:#10151d;
+  color:#edf3fa;
+  font-family:sans-serif;
+  max-width:800px;
+  margin:auto;
+  padding:20px;
+}
+section {
+  background:#1a2330;
+  border:1px solid #344357;
+  border-radius:12px;
+  padding:16px;
+  margin:16px 0;
+}
+label { display:block; margin:12px 0 5px; }
+input {
+  box-sizing:border-box;
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #465a72;
+  background:#0f1722;
+  color:white;
+  font-size:16px;
+}
+.results {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.part {
+  background:#202c3b;
+  padding:12px;
+  border-radius:10px;
+  overflow-wrap:anywhere;
+}
+.value { font-size:1.5em; font-weight:bold; }
+button {
+  padding:12px;
+  margin:12px 5px 0 0;
+  border:0;
+  border-radius:8px;
+  background:#71c7ff;
+  font-weight:bold;
+}
+.note { color:#aab8c9; font-size:.9em; }
+@media(max-width:550px) {
+  .results { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<h1>バトオペ2 部位耐久計算ツール</h1>
+<p>機体HPから脚部・頭部・背部の耐久値を計算します。</p>
+
+<section>
+  <h2>機体設定</h2>
+  <label for="hp">機体HP</label>
+  <input id="hp" type="number" min="0" step="1" value="18000">
+</section>
+
+<section>
+  <h2>部位耐久率（%）</h2>
+  <p class="note">各部位の耐久率は手動で変更できます。初期値は仮設定です。</p>
+
+  <label for="leg">脚部耐久率</label>
+  <input id="leg" type="number" min="0" step="0.1" value="60">
+
+  <label for="head">頭部耐久率</label>
+  <input id="head" type="number" min="0" step="0.1" value="20">
+
+  <label for="back">背部耐久率</label>
+  <input id="back" type="number" min="0" step="0.1" value="30">
+</section>
+
+<section>
+  <h2>計算結果</h2>
+  <div class="results">
+    <div class="part">
+      <h3>脚部</h3>
+      <div class="value" id="legResult">10,800</div>
+      <div class="note">部位耐久値</div>
+    </div>
+    <div class="part">
+      <h3>頭部</h3>
+      <div class="value" id="headResult">3,600</div>
+      <div class="note">部位耐久値</div>
+    </div>
+    <div class="part">
+      <h3>背部</h3>
+      <div class="value" id="backResult">5,400</div>
+      <div class="note">部位耐久値</div>
+    </div>
+  </div>
+  <button id="copy" type="button">結果をコピー</button>
+  <button id="reset" type="button">初期値に戻す</button>
+  <p id="message" class="note"></p>
+</section>
+
+<section>
+  <h2>計算式</h2>
+  <p>部位耐久値 ＝ 機体HP × 部位耐久率 ÷ 100</p>
+  <p class="note">
+    例：機体HPが18,000、脚部耐久率が60%なら、
+    脚部耐久値は10,800です。
+  </p>
+  <p class="note">
+    ※耐久率の初期値は仮設定です。
+    実際のゲーム内仕様に合わせて変更してください。
+  </p>
+</section>
+
+<script>
+const defaults = {
+  hp: 18000,
+  leg: 60,
+  head: 20,
+  back: 30
+};
+
+function number(id) {
+  const n = Number(document.getElementById(id).value);
+  return Number.isFinite(n) ? Math.max(0, n) : 0;
+}
+
+function calculate() {
+  const hp = number("hp");
+
+  ["leg", "head", "back"].forEach(part => {
+    const rate = number(part);
+    const durability = hp * rate / 100;
+
+    document.getElementById(part + "Result").textContent =
+      Math.round(durability).toLocaleString("ja-JP");
+  });
+}
+
+["hp", "leg", "head", "back"].forEach(id => {
+  document.getElementById(id).addEventListener("input", calculate);
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  Object.entries(defaults).forEach(([id, value]) => {
+    document.getElementById(id).value = value;
+  });
+  calculate();
+  document.getElementById("message").textContent = "";
+});
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const lines = [
+    "バトオペ2 部位耐久計算結果",
+    "機体HP: " + number("hp").toLocaleString("ja-JP"),
+    "脚部: " + document.getElementById("legResult").textContent,
+    "頭部: " + document.getElementById("headResult").textContent,
+    "背部: " + document.getElementById("backResult").textContent
+  ];
+  const message = document.getElementById("message");
+
+  try {
+    await navigator.clipboard.writeText(lines.join("\n"));
+    message.textContent = "結果をコピーしました。";
+  } catch (error) {
+    message.textContent = lines.join(" / ");
+  }
+});
+
+calculate();
+</script>
+</body>
+</html>
