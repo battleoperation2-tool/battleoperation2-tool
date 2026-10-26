@@ -6,353 +6,329 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>バトオペ2 部位耐久値計算ツール</title>
 <style>
-  :root {
-    color-scheme: dark;
-    --bg: #10151d;
-    --panel: #1b2430;
-    --line: #344253;
-    --text: #edf3fa;
-    --muted: #aab8c8;
-    --accent: #65c8ff;
-  }
-
-  * { box-sizing: border-box; }
-
-  body {
-    margin: 0;
-    padding: 20px;
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, sans-serif;
-  }
-
-  main {
-    max-width: 850px;
-    margin: auto;
-  }
-
-  h1 { font-size: 1.5rem; }
-  h2 { font-size: 1.15rem; margin-top: 0; }
-
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
-  }
-
-  .field { margin-bottom: 14px; }
-
-  label {
-    display: block;
-    color: var(--muted);
-    font-size: .9rem;
-    margin-bottom: 6px;
-  }
-
-  input, select, button {
-    width: 100%;
-    padding: 10px;
-    border-radius: 7px;
-    border: 1px solid var(--line);
-    background: #111923;
-    color: var(--text);
-    font: inherit;
-  }
-
-  input:focus, select:focus {
-    outline: 2px solid var(--accent);
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .part {
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 12px;
-    min-width: 0;
-  }
-
-  .part h3 { margin: 0 0 12px; }
-
-  .result {
-    background: #111923;
-    border-radius: 8px;
-    padding: 10px;
-    margin-top: 10px;
-  }
-
-  .result small {
-    display: block;
-    color: var(--muted);
-    margin-bottom: 3px;
-  }
-
-  .number {
-    font-size: 1.25rem;
-    font-weight: 700;
-    overflow-wrap: anywhere;
-  }
-
-  .effective { color: var(--accent); }
-
-  .note {
-    color: var(--muted);
-    font-size: .85rem;
-    line-height: 1.6;
-  }
-
-  button {
-    cursor: pointer;
-    background: #183b52;
-    border-color: #376681;
-  }
-
-  button:hover { background: #22516e; }
-
-  @media (max-width: 680px) {
-    body { padding: 12px; }
-    .grid { grid-template-columns: 1fr; }
-  }
+:root {
+  color-scheme: dark;
+  --bg: #10151d;
+  --panel: #1b2430;
+  --line: #344253;
+  --text: #edf3fa;
+  --muted: #aab8c8;
+  --accent: #65c8ff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 20px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+main { max-width: 1000px; margin: auto; }
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.15rem; margin-top: 0; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.part {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 0;
+}
+.part h3 { margin: 0 0 14px; }
+.field { margin-bottom: 14px; }
+label {
+  display: block;
+  color: var(--muted);
+  font-size: .9rem;
+  margin-bottom: 6px;
+}
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: #111923;
+  color: var(--text);
+  font: inherit;
+}
+button { cursor: pointer; background: #183b52; }
+button:hover { background: #22516e; }
+.result {
+  background: #111923;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+}
+.result small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.number {
+  font-size: 1.25rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.effective { color: var(--accent); }
+.note {
+  color: var(--muted);
+  font-size: .85rem;
+  line-height: 1.65;
+}
+@media (max-width: 760px) {
+  body { padding: 12px; }
+  .grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 <main>
-  <h1>バトオペ2 部位耐久値計算ツール</h1>
+<h1>バトオペ2 部位耐久値計算ツール</h1>
 
-  <section class="panel">
-    <h2>機体設定</h2>
-    <div class="field">
-      <label for="hp">機体HP</label>
-      <input id="hp" type="number" min="1" step="1" value="18000">
+<section class="panel">
+  <h2>機体設定</h2>
+  <div class="field">
+    <label for="hp">機体HP</label>
+    <input id="hp" type="number" min="1" step="1" value="18000">
+  </div>
+  <p class="note">
+    初期値は機体HP 18,000です。部位耐久割合は機体に合わせて変更できます。
+    特殊装甲を選ぶと、各パーツの実際の部位HP割合を適用します。
+  </p>
+</section>
+
+<section class="panel">
+  <h2>部位設定</h2>
+  <div class="grid">
+
+    <div class="part" data-part="legs">
+      <h3>脚部</h3>
+      <div class="field">
+        <label>標準部位耐久割合（%）</label>
+        <input class="ratio" type="number" min="0" max="1000"
+               step="1" value="60">
+      </div>
+      <div class="field">
+        <label>脚部特殊装甲</label>
+        <select class="armor">
+          <option value="0" data-ratio="60" data-main="0">なし（60%）</option>
+          <option value="1" data-ratio="65" data-main="1">Lv1（65%・機体HP軽減1%）</option>
+          <option value="2" data-ratio="70" data-main="1">Lv2（70%・機体HP軽減1%）</option>
+          <option value="3" data-ratio="80" data-main="2">Lv3（80%・機体HP軽減2%）</option>
+          <option value="4" data-ratio="90" data-main="7">Lv4（90%・機体HP軽減7%）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>脚部特殊緩衝材（スキル）</label>
+        <select class="buffer">
+          <option value="0">なし（0%）</option>
+          <option value="10">Lv1（10%軽減）</option>
+          <option value="15">Lv2（15%軽減）</option>
+          <option value="25">Lv3（25%軽減）</option>
+          <option value="35">Lv4（35%軽減）</option>
+        </select>
+      </div>
+      <div class="result">
+        <small>通常耐久値</small>
+        <div class="number base">10,800</div>
+      </div>
+      <div class="result">
+        <small>パーツ適用後の部位耐久値</small>
+        <div class="number part-hp">10,800</div>
+      </div>
+      <div class="result">
+        <small>緩衝材込みの耐久相当値</small>
+        <div class="number effective">10,800</div>
+      </div>
+      <div class="result">
+        <small>特殊装甲による機体HP軽減</small>
+        <div class="number main-reduction">0%</div>
+      </div>
     </div>
-    <p class="note">
-      部位耐久値は、機体HPと部位耐久割合から計算します。
-      各部位の割合は手動で変更できます。
-    </p>
-  </section>
 
-  <section class="panel">
-    <h2>部位設定</h2>
-    <div class="grid">
-
-      <div class="part" data-part="legs">
-        <h3>脚部</h3>
-
-        <div class="field">
-          <label>部位耐久割合（%）</label>
-          <input class="ratio" type="number"
-                 min="0" max="1000" step="1" value="60">
-        </div>
-
-        <div class="field">
-          <label>脚部特殊装甲</label>
-          <select class="armor">
-            <option value="0">なし（基準値）</option>
-            <option value="5">Lv1（+5ポイント）</option>
-            <option value="10">Lv2（+10ポイント）</option>
-            <option value="15">Lv3（+15ポイント）</option>
-            <option value="20">Lv4（+20ポイント）</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>特殊緩衝材</label>
-          <select class="buffer">
-            <option value="0">なし（0%）</option>
-            <option value="10">Lv1（10%軽減）</option>
-            <option value="15">Lv2（15%軽減）</option>
-            <option value="25">Lv3（25%軽減）</option>
-            <option value="35">Lv4（35%軽減）</option>
-          </select>
-        </div>
-
-        <div class="result">
-          <small>通常耐久値</small>
-          <div class="number base">10,800</div>
-        </div>
-        <div class="result">
-          <small>パーツ適用後の耐久値</small>
-          <div class="number part-hp">10,800</div>
-        </div>
-        <div class="result">
-          <small>緩衝材込みの耐久相当値</small>
-          <div class="number effective">10,800</div>
-        </div>
+    <div class="part" data-part="head">
+      <h3>頭部</h3>
+      <div class="field">
+        <label>標準部位耐久割合（%）</label>
+        <input class="ratio" type="number" min="0" max="1000"
+               step="1" value="45">
       </div>
-
-      <div class="part" data-part="head">
-        <h3>頭部</h3>
-
-        <div class="field">
-          <label>部位耐久割合（%）</label>
-          <input class="ratio" type="number"
-                 min="0" max="1000" step="1" value="45">
-        </div>
-
-        <div class="field">
-          <label>頭部特殊装甲</label>
-          <select class="armor">
-            <option value="0">なし（基準値）</option>
-            <option value="10">Lv1（+10ポイント）</option>
-            <option value="20">Lv2（+20ポイント）</option>
-            <option value="30">Lv3（+30ポイント）</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>特殊緩衝材</label>
-          <select class="buffer">
-            <option value="0">なし（0%）</option>
-            <option value="10">Lv1（10%軽減）</option>
-            <option value="15">Lv2（15%軽減）</option>
-            <option value="20">Lv3（20%軽減）</option>
-            <option value="25">Lv4（25%軽減）</option>
-          </select>
-        </div>
-
-        <div class="result">
-          <small>通常耐久値</small>
-          <div class="number base">8,100</div>
-        </div>
-        <div class="result">
-          <small>パーツ適用後の耐久値</small>
-          <div class="number part-hp">8,100</div>
-        </div>
-        <div class="result">
-          <small>緩衝材込みの耐久相当値</small>
-          <div class="number effective">8,100</div>
-        </div>
+      <div class="field">
+        <label>頭部特殊装甲</label>
+        <select class="armor">
+          <option value="0" data-ratio="45" data-main="0">なし（45%）</option>
+          <option value="1" data-ratio="55" data-main="4">Lv1（55%・機体HP軽減4%）</option>
+          <option value="2" data-ratio="75" data-main="12">Lv2（75%・機体HP軽減12%）</option>
+          <option value="3" data-ratio="85" data-main="15">Lv3（85%・機体HP軽減15%）</option>
+        </select>
       </div>
-
-      <div class="part" data-part="back">
-        <h3>背部</h3>
-
-        <div class="field">
-          <label>部位耐久割合（%）</label>
-          <input class="ratio" type="number"
-                 min="0" max="1000" step="1" value="30">
-        </div>
-
-        <div class="field">
-          <label>背部特殊装甲</label>
-          <select class="armor">
-            <option value="0">なし（基準値）</option>
-            <option value="10">Lv1（+10ポイント）</option>
-            <option value="20">Lv2（+20ポイント）</option>
-            <option value="30">Lv3（+30ポイント）</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>特殊緩衝材</label>
-          <select class="buffer">
-            <option value="0">なし（0%）</option>
-            <option value="10">Lv1（10%軽減）</option>
-            <option value="15">Lv2（15%軽減）</option>
-            <option value="20">Lv3（20%軽減）</option>
-          </select>
-        </div>
-
-        <div class="result">
-          <small>通常耐久値</small>
-          <div class="number base">5,400</div>
-        </div>
-        <div class="result">
-          <small>パーツ適用後の耐久値</small>
-          <div class="number part-hp">5,400</div>
-        </div>
-        <div class="result">
-          <small>緩衝材込みの耐久相当値</small>
-          <div class="number effective">5,400</div>
-        </div>
+      <div class="field">
+        <label>頭部特殊緩衝材（スキル）</label>
+        <select class="buffer">
+          <option value="0">なし（0%）</option>
+          <option value="10">Lv1（10%軽減）</option>
+          <option value="15">Lv2（15%軽減）</option>
+          <option value="20">Lv3（20%軽減）</option>
+          <option value="25">Lv4（25%軽減）</option>
+        </select>
       </div>
-
+      <div class="result">
+        <small>通常耐久値</small>
+        <div class="number base">8,100</div>
+      </div>
+      <div class="result">
+        <small>パーツ適用後の部位耐久値</small>
+        <div class="number part-hp">8,100</div>
+      </div>
+      <div class="result">
+        <small>緩衝材込みの耐久相当値</small>
+        <div class="number effective">8,100</div>
+      </div>
+      <div class="result">
+        <small>特殊装甲による機体HP軽減</small>
+        <div class="number main-reduction">0%</div>
+      </div>
     </div>
-  </section>
 
-  <section class="panel">
-    <h2>計算について</h2>
-    <p class="note">
-      通常耐久値 ＝ 機体HP × 部位耐久割合 ÷ 100<br>
-      パーツ適用後 ＝ 機体HP ×（部位耐久割合 + パーツ補正）÷ 100<br>
-      耐久相当値 ＝ パーツ適用後の耐久値 ÷（1 − 軽減率）
-    </p>
-    <p class="note">
-      このツールでは、パーツ補正を耐久割合への加算として扱います。
-      実際のゲーム内の適用方式や各レベルの効果値が異なる場合は、
-      選択肢と計算式を調整してください。
-    </p>
-    <button id="reset">初期設定に戻す</button>
-  </section>
+    <div class="part" data-part="back">
+      <h3>背部（宇宙）</h3>
+      <div class="field">
+        <label>標準部位耐久割合（%）</label>
+        <input class="ratio" type="number" min="0" max="1000"
+               step="1" value="30">
+      </div>
+      <div class="field">
+        <label>背部特殊装甲</label>
+        <select class="armor">
+          <option value="0" data-ratio="30" data-main="0">なし（30%）</option>
+          <option value="1" data-ratio="40" data-main="2">Lv1（40%・機体HP軽減2%）</option>
+          <option value="2" data-ratio="55" data-main="6">Lv2（55%・機体HP軽減6%）</option>
+          <option value="3" data-ratio="80" data-main="13">Lv3（80%・機体HP軽減13%）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>背部特殊緩衝材（スキル）</label>
+        <select class="buffer">
+          <option value="0">なし（0%）</option>
+          <option value="10">Lv1（10%軽減）</option>
+          <option value="15">Lv2（15%軽減）</option>
+          <option value="20">Lv3（20%軽減）</option>
+        </select>
+      </div>
+      <div class="result">
+        <small>通常耐久値</small>
+        <div class="number base">5,400</div>
+      </div>
+      <div class="result">
+        <small>パーツ適用後の部位耐久値</small>
+        <div class="number part-hp">5,400</div>
+      </div>
+      <div class="result">
+        <small>緩衝材込みの耐久相当値</small>
+        <div class="number effective">5,400</div>
+      </div>
+      <div class="result">
+        <small>特殊装甲による機体HP軽減</small>
+        <div class="number main-reduction">0%</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="panel">
+  <h2>計算方法</h2>
+  <p class="note">
+    通常耐久値 ＝ 機体HP × 標準部位耐久割合 ÷ 100<br>
+    パーツ適用後の部位耐久値 ＝ 機体HP × パーツ適用後の割合 ÷ 100<br>
+    緩衝材込みの耐久相当値 ＝ パーツ適用後の部位耐久値 ÷（1 − 緩衝材軽減率）
+  </p>
+  <p class="note">
+    特殊装甲による機体HPへのダメージ軽減は、部位HPへのダメージ軽減とは別効果です。
+    そのため、耐久相当値には特殊緩衝材の軽減率だけを使用します。
+    機体ごとのスキル所持状況に応じて、緩衝材の選択を変更してください。
+  </p>
+  <button id="reset">初期設定に戻す</button>
+</section>
 </main>
 
 <script>
-  const hpInput = document.getElementById("hp");
-  const parts = [...document.querySelectorAll(".part")];
+const hpInput = document.getElementById("hp");
+const parts = [...document.querySelectorAll(".part")];
 
-  function formatNumber(value) {
-    return Math.floor(value).toLocaleString("ja-JP");
-  }
+function fmt(n) {
+  return Math.floor(n).toLocaleString("ja-JP");
+}
 
-  function calculate() {
-    const hp = Math.max(0, Number(hpInput.value) || 0);
+function calculate() {
+  const hp = Math.max(0, Number(hpInput.value) || 0);
 
-    parts.forEach(part => {
-      const ratio = Math.max(
-        0, Number(part.querySelector(".ratio").value) || 0
-      );
-      const armor = Math.max(
-        0, Number(part.querySelector(".armor").value) || 0
-      );
-      const buffer = Math.min(
-        99.9,
-        Math.max(0, Number(part.querySelector(".buffer").value) || 0)
-      );
+  parts.forEach(part => {
+    const ratioInput = part.querySelector(".ratio");
+    const armorSelect = part.querySelector(".armor");
+    const bufferSelect = part.querySelector(".buffer");
+    const selected = armorSelect.selectedOptions[0];
 
-      const baseHp = hp * ratio / 100;
-      const partHp = hp * (ratio + armor) / 100;
-      const effectiveHp = partHp / (1 - buffer / 100);
+    const baseRatio = Math.max(0, Number(ratioInput.value) || 0);
+    const armorRatio = Number(selected.dataset.ratio);
+    const mainReduction = Number(selected.dataset.main);
+    const hasArmor = armorSelect.value !== "0";
 
-      part.querySelector(".base").textContent =
-        formatNumber(baseHp);
-      part.querySelector(".part-hp").textContent =
-        formatNumber(partHp);
-      part.querySelector(".effective").textContent =
-        formatNumber(effectiveHp);
-    });
-  }
+    // 特殊装甲選択中は、実際の装備後割合を使用。
+    // 未装備なら手動入力した標準割合を使用。
+    const appliedRatio = hasArmor ? armorRatio : baseRatio;
+    const buffer = Math.min(
+      99.9,
+      Math.max(0, Number(bufferSelect.value) || 0)
+    );
 
-  document.querySelectorAll("input, select").forEach(element => {
-    element.addEventListener("input", calculate);
-    element.addEventListener("change", calculate);
+    const baseHp = hp * baseRatio / 100;
+    const partHp = hp * appliedRatio / 100;
+    const effectiveHp = partHp / (1 - buffer / 100);
+
+    part.querySelector(".base").textContent = fmt(baseHp);
+    part.querySelector(".part-hp").textContent = fmt(partHp);
+    part.querySelector(".effective").textContent = fmt(effectiveHp);
+    part.querySelector(".main-reduction").textContent =
+      mainReduction + "%";
   });
+}
 
-  document.getElementById("reset").addEventListener("click", () => {
-    hpInput.value = 18000;
+document.querySelectorAll("input, select").forEach(el => {
+  el.addEventListener("input", calculate);
+  el.addEventListener("change", calculate);
+});
 
-    const defaults = {
-      legs: { ratio: 60, armor: 0, buffer: 0 },
-      head: { ratio: 45, armor: 0, buffer: 0 },
-      back: { ratio: 30, armor: 0, buffer: 0 }
-    };
+document.getElementById("reset").addEventListener("click", () => {
+  hpInput.value = 18000;
 
-    parts.forEach(part => {
-      const value = defaults[part.dataset.part];
-      part.querySelector(".ratio").value = value.ratio;
-      part.querySelector(".armor").value = value.armor;
-      part.querySelector(".buffer").value = value.buffer;
-    });
+  const defaults = {
+    legs: { ratio: 60, armor: "0", buffer: "0" },
+    head: { ratio: 45, armor: "0", buffer: "0" },
+    back: { ratio: 30, armor: "0", buffer: "0" }
+  };
 
-    calculate();
+  parts.forEach(part => {
+    const d = defaults[part.dataset.part];
+    part.querySelector(".ratio").value = d.ratio;
+    part.querySelector(".armor").value = d.armor;
+    part.querySelector(".buffer").value = d.buffer;
   });
 
   calculate();
+});
+
+calculate();
 </script>
 </body>
 </html>
