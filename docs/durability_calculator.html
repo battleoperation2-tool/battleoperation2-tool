@@ -26,6 +26,7 @@ body {
 main { max-width: 1000px; margin: auto; }
 h1 { font-size: 1.5rem; }
 h2 { font-size: 1.15rem; margin-top: 0; }
+h3 { font-size: 1.05rem; }
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -96,6 +97,7 @@ button:hover { background: #22516e; }
 </head>
 <body>
 <main>
+
 <h1>バトオペ2 部位耐久値計算ツール</h1>
 
 <section class="panel">
@@ -111,7 +113,6 @@ button:hover { background: #22516e; }
     <select id="connecting">
       <option value="0">装備しない</option>
       <option value="1">装備する（汎用機）</option>
-      <option value="2">装備する（汎用機以外）</option>
     </select>
   </div>
 
@@ -121,173 +122,205 @@ button:hover { background: #22516e; }
   </div>
 
   <p class="note">
-    コネクティングシステム［汎用Ⅱ型］は機体HPを2,000増加させます。
-    汎用機では、さらに各部位のHPが30%増加します。
-    シールドHPの表示はこのツールでは行いません。
+    コネクティングシステム［汎用Ⅱ型］を選択すると、
+    機体HPを2,000増加させ、各部位のHPに30%増加を適用します。
+    汎用機向けの効果を想定しています。
+    シールドHPは計算対象外です。
   </p>
 </section>
 
 <section class="panel">
-<h2>部位設定</h2>
-<div class="grid">
+  <h2>部位設定</h2>
 
-  <!-- 脚部 -->
-  <div class="part" data-part="legs">
-    <h3>脚部</h3>
+  <div class="grid">
 
-    <div class="field">
-      <label>標準部位耐久割合（%）</label>
-      <input class="ratio" type="number" min="0" max="1000"
-             step="1" value="60">
+    <!-- 脚部 -->
+    <div class="part" data-part="legs">
+      <h3>脚部</h3>
+
+      <div class="field">
+        <label>標準部位耐久割合（%）</label>
+        <input class="ratio" type="number" min="0" max="1000" step="1" value="60">
+      </div>
+
+      <div class="field">
+        <label>脚部特殊装甲</label>
+        <select class="armor">
+          <option value="0" data-ratio="60" data-main="0">なし（60%）</option>
+          <option value="1" data-ratio="65" data-main="1">Lv1（65%・機体HP1%軽減）</option>
+          <option value="2" data-ratio="70" data-main="1">Lv2（70%・機体HP1%軽減）</option>
+          <option value="3" data-ratio="80" data-main="2">Lv3（80%・機体HP2%軽減）</option>
+          <option value="4" data-ratio="90" data-main="7">Lv4（90%・機体HP7%軽減）</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>脚部特殊緩衝材</label>
+        <select class="buffer">
+          <option value="0">なし（0%）</option>
+          <option value="10">Lv1（10%軽減）</option>
+          <option value="15">Lv2（15%軽減）</option>
+          <option value="25">Lv3（25%軽減）</option>
+          <option value="35">Lv4（35%軽減）</option>
+          <option value="45">Lv5（45%軽減）</option>
+          <option value="55">Lv6（55%軽減）</option>
+        </select>
+      </div>
+
+      <div class="result">
+        <small>通常耐久値（手動割合）</small>
+        <div class="number base">10,800</div>
+      </div>
+
+      <div class="result">
+        <small>パーツ適用後の部位耐久値</small>
+        <div class="number part-hp">10,800</div>
+      </div>
+
+      <div class="result">
+        <small>機体HPダメージ軽減率（特殊装甲）</small>
+        <div class="number main-reduction">0%</div>
+      </div>
+
+      <div class="result">
+        <small>緩衝材込みの耐久相当値</small>
+        <div class="number effective">10,800</div>
+      </div>
     </div>
 
-    <div class="field">
-      <label>脚部特殊装甲</label>
-      <select class="armor">
-        <option value="0" data-ratio="60">なし（60%）</option>
-        <option value="1" data-ratio="65">Lv1（65%）</option>
-        <option value="2" data-ratio="70">Lv2（70%）</option>
-        <option value="3" data-ratio="80">Lv3（80%）</option>
-        <option value="4" data-ratio="90">Lv4（90%）</option>
-      </select>
+    <!-- 頭部 -->
+    <div class="part" data-part="head">
+      <h3>頭部</h3>
+
+      <div class="field">
+        <label>標準部位耐久割合（%）</label>
+        <input class="ratio" type="number" min="0" max="1000" step="1" value="45">
+      </div>
+
+      <div class="field">
+        <label>頭部特殊装甲</label>
+        <select class="armor">
+          <option value="0" data-ratio="45" data-main="0">なし（45%）</option>
+          <option value="1" data-ratio="55" data-main="4">Lv1（55%・機体HP4%軽減）</option>
+          <option value="2" data-ratio="75" data-main="12">Lv2（75%・機体HP12%軽減）</option>
+          <option value="3" data-ratio="85" data-main="15">Lv3（85%・機体HP15%軽減）</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>頭部特殊緩衝材</label>
+        <select class="buffer">
+          <option value="0">なし（0%）</option>
+          <option value="10">Lv1（10%軽減）</option>
+          <option value="15">Lv2（15%軽減）</option>
+          <option value="20">Lv3（20%軽減）</option>
+          <option value="25">Lv4（25%軽減）</option>
+          <option value="30">Lv5（30%軽減）</option>
+          <option value="35">Lv6（35%軽減）</option>
+        </select>
+      </div>
+
+      <div class="result">
+        <small>通常耐久値（手動割合）</small>
+        <div class="number base">8,100</div>
+      </div>
+
+      <div class="result">
+        <small>パーツ適用後の部位耐久値</small>
+        <div class="number part-hp">8,100</div>
+      </div>
+
+      <div class="result">
+        <small>機体HPダメージ軽減率（特殊装甲）</small>
+        <div class="number main-reduction">0%</div>
+      </div>
+
+      <div class="result">
+        <small>緩衝材込みの耐久相当値</small>
+        <div class="number effective">8,100</div>
+      </div>
     </div>
 
-    <div class="field">
-      <label>脚部特殊緩衝材</label>
-      <select class="buffer">
-        <option value="0">なし（0%）</option>
-        <option value="10">Lv1（10%軽減）</option>
-        <option value="15">Lv2（15%軽減）</option>
-        <option value="25">Lv3（25%軽減）</option>
-        <option value="35">Lv4（35%軽減）</option>
-        <option value="45">Lv5（45%軽減）</option>
-        <option value="55">Lv6（55%軽減）</option>
-      </select>
+    <!-- 背部 -->
+    <div class="part" data-part="back">
+      <h3>背部（宇宙）</h3>
+
+      <div class="field">
+        <label>標準部位耐久割合（%）</label>
+        <input class="ratio" type="number" min="0" max="1000" step="1" value="30">
+      </div>
+
+      <div class="field">
+        <label>背部特殊装甲</label>
+        <select class="armor">
+          <option value="0" data-ratio="30" data-main="0">なし（30%）</option>
+          <option value="1" data-ratio="40" data-main="2">Lv1（40%・機体HP2%軽減）</option>
+          <option value="2" data-ratio="55" data-main="6">Lv2（55%・機体HP6%軽減）</option>
+          <option value="3" data-ratio="80" data-main="13">Lv3（80%・機体HP13%軽減）</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>背部特殊緩衝材</label>
+        <select class="buffer">
+          <option value="0">なし（0%）</option>
+          <option value="10">Lv1（10%軽減）</option>
+          <option value="15">Lv2（15%軽減）</option>
+          <option value="20">Lv3（20%軽減）</option>
+        </select>
+      </div>
+
+      <div class="result">
+        <small>通常耐久値（手動割合）</small>
+        <div class="number base">5,400</div>
+      </div>
+
+      <div class="result">
+        <small>パーツ適用後の部位耐久値</small>
+        <div class="number part-hp">5,400</div>
+      </div>
+
+      <div class="result">
+        <small>機体HPダメージ軽減率（特殊装甲）</small>
+        <div class="number main-reduction">0%</div>
+      </div>
+
+      <div class="result">
+        <small>緩衝材込みの耐久相当値</small>
+        <div class="number effective">5,400</div>
+      </div>
     </div>
 
-    <div class="result">
-      <small>通常耐久値</small>
-      <div class="number base">10,800</div>
-    </div>
-    <div class="result">
-      <small>パーツ適用後の部位耐久値</small>
-      <div class="number part-hp">10,800</div>
-    </div>
-    <div class="result">
-      <small>緩衝材込みの耐久相当値</small>
-      <div class="number effective">10,800</div>
-    </div>
   </div>
-
-  <!-- 頭部 -->
-  <div class="part" data-part="head">
-    <h3>頭部</h3>
-
-    <div class="field">
-      <label>標準部位耐久割合（%）</label>
-      <input class="ratio" type="number" min="0" max="1000"
-             step="1" value="45">
-    </div>
-
-    <div class="field">
-      <label>頭部特殊装甲</label>
-      <select class="armor">
-        <option value="0" data-ratio="45">なし（45%）</option>
-        <option value="1" data-ratio="55">Lv1（55%）</option>
-        <option value="2" data-ratio="75">Lv2（75%）</option>
-        <option value="3" data-ratio="85">Lv3（85%）</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>頭部特殊緩衝材</label>
-      <select class="buffer">
-        <option value="0">なし（0%）</option>
-        <option value="10">Lv1（10%軽減）</option>
-        <option value="15">Lv2（15%軽減）</option>
-        <option value="20">Lv3（20%軽減）</option>
-        <option value="25">Lv4（25%軽減）</option>
-        <option value="30">Lv5（30%軽減）</option>
-        <option value="35">Lv6（35%軽減）</option>
-      </select>
-    </div>
-
-    <div class="result">
-      <small>通常耐久値</small>
-      <div class="number base">8,100</div>
-    </div>
-    <div class="result">
-      <small>パーツ適用後の部位耐久値</small>
-      <div class="number part-hp">8,100</div>
-    </div>
-    <div class="result">
-      <small>緩衝材込みの耐久相当値</small>
-      <div class="number effective">8,100</div>
-    </div>
-  </div>
-
-  <!-- 背部 -->
-  <div class="part" data-part="back">
-    <h3>背部（宇宙）</h3>
-
-    <div class="field">
-      <label>標準部位耐久割合（%）</label>
-      <input class="ratio" type="number" min="0" max="1000"
-             step="1" value="30">
-    </div>
-
-    <div class="field">
-      <label>背部特殊装甲</label>
-      <select class="armor">
-        <option value="0" data-ratio="30">なし（30%）</option>
-        <option value="1" data-ratio="40">Lv1（40%）</option>
-        <option value="2" data-ratio="55">Lv2（55%）</option>
-        <option value="3" data-ratio="80">Lv3（80%）</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>背部特殊緩衝材</label>
-      <select class="buffer">
-        <option value="0">なし（0%）</option>
-        <option value="10">Lv1（10%軽減）</option>
-        <option value="15">Lv2（15%軽減）</option>
-        <option value="20">Lv3（20%軽減）</option>
-      </select>
-    </div>
-
-    <div class="result">
-      <small>通常耐久値</small>
-      <div class="number base">5,400</div>
-    </div>
-    <div class="result">
-      <small>パーツ適用後の部位耐久値</small>
-      <div class="number part-hp">5,400</div>
-    </div>
-    <div class="result">
-      <small>緩衝材込みの耐久相当値</small>
-      <div class="number effective">5,400</div>
-    </div>
-  </div>
-
-</div>
 </section>
 
 <section class="panel">
-<h2>計算方法</h2>
-<p class="note">
-  通常耐久値 ＝ 入力した機体HP × 標準部位耐久割合 ÷ 100<br>
-  パーツ適用後 ＝ パーツ適用後の機体HP × 部位耐久割合 ÷ 100<br>
-  汎用機の場合、コネクティングシステムの部位HP増加としてさらに1.3倍<br>
-  緩衝材込みの耐久相当値 ＝ パーツ適用後の部位耐久値 ÷（1 − 軽減率）
-</p>
-<p class="note">
-  特殊装甲を選ぶと、手動設定した標準割合ではなく、
-  選択した装甲の部位HP割合を使用します。
-  装甲を「なし」にすると手動設定した割合が使われます。
-</p>
-<button id="reset">初期設定に戻す</button>
+  <h2>計算方法</h2>
+
+  <p class="note">
+    通常耐久値 ＝ 入力した機体HP × 標準部位耐久割合 ÷ 100<br>
+    パーツ適用後の機体HP ＝ 入力した機体HP ＋ 装備による増加HP<br>
+    部位耐久値 ＝ パーツ適用後の機体HP × 適用部位割合 ÷ 100<br>
+    コネクティングシステム選択時は、部位耐久値にさらに1.3倍を適用<br>
+    緩衝材込みの耐久相当値 ＝ 部位耐久値 ÷（1 − 緩衝材軽減率 ÷ 100）
+  </p>
+
+  <p class="note">
+    特殊装甲を選ぶと、手動設定した割合ではなく、
+    選択した装甲の部位HP割合を使用します。
+    「なし」にすると手動設定した割合が使われます。
+  </p>
+
+  <p class="note">
+    機体HPダメージ軽減率は、該当部位に攻撃が命中したときの
+    機体HPへのダメージに適用される値です。
+    部位HPへの負荷軽減は特殊緩衝材の項目で別に計算します。
+    緩衝材込みの耐久相当値は、軽減を考慮した目安です。
+  </p>
+
+  <button id="reset" type="button">初期設定に戻す</button>
 </section>
+
 </main>
 
 <script>
@@ -301,16 +334,12 @@ function fmt(value) {
 
 function calculate() {
   const hp = Math.max(0, Number(hpInput.value) || 0);
-  const connecting = Number(connectingSelect.value);
+  const connecting = connectingSelect.value === "1";
 
-  // コネクティングシステム［汎用Ⅱ型］：機体HP +2000
-  const adjustedHp = hp + (connecting > 0 ? 2000 : 0);
+  const adjustedHp = hp + (connecting ? 2000 : 0);
+  const partMultiplier = connecting ? 1.3 : 1;
 
-  // 汎用機に装備した場合は部位HP +30%
-  const partMultiplier = connecting === 1 ? 1.3 : 1;
-
-  document.getElementById("adjusted-hp").textContent =
-    fmt(adjustedHp);
+  document.getElementById("adjusted-hp").textContent = fmt(adjustedHp);
 
   parts.forEach(part => {
     const ratioInput = part.querySelector(".ratio");
@@ -318,42 +347,41 @@ function calculate() {
     const bufferSelect = part.querySelector(".buffer");
 
     const standardRatio = Math.max(
-      0, Number(ratioInput.value) || 0
+      0,
+      Number(ratioInput.value) || 0
     );
 
     const selectedArmor = armorSelect.selectedOptions[0];
     const hasArmor = armorSelect.value !== "0";
 
-    // 特殊装甲の選択時は、装備後の部位HP割合を使う
     const appliedRatio = hasArmor
       ? Number(selectedArmor.dataset.ratio)
       : standardRatio;
+
+    const mainReduction = Number(
+      selectedArmor.dataset.main || 0
+    );
 
     const buffer = Math.min(
       99.9,
       Math.max(0, Number(bufferSelect.value) || 0)
     );
 
-    // 通常耐久値は、入力された元の機体HPを基準に計算
     const baseHp = hp * standardRatio / 100;
-
-    // パーツ適用後の部位耐久値
-    const partHp =
-      adjustedHp * appliedRatio / 100 * partMultiplier;
-
-    // 緩衝材込みの耐久相当値
+    const partHp = adjustedHp * appliedRatio / 100 * partMultiplier;
     const effectiveHp = partHp / (1 - buffer / 100);
 
     part.querySelector(".base").textContent = fmt(baseHp);
     part.querySelector(".part-hp").textContent = fmt(partHp);
-    part.querySelector(".effective").textContent =
-      fmt(effectiveHp);
+    part.querySelector(".main-reduction").textContent =
+      mainReduction + "%";
+    part.querySelector(".effective").textContent = fmt(effectiveHp);
   });
 }
 
-document.querySelectorAll("input, select").forEach(element => {
-  element.addEventListener("input", calculate);
-  element.addEventListener("change", calculate);
+document.querySelectorAll("input, select").forEach(el => {
+  el.addEventListener("input", calculate);
+  el.addEventListener("change", calculate);
 });
 
 document.getElementById("reset").addEventListener("click", () => {
@@ -368,6 +396,7 @@ document.getElementById("reset").addEventListener("click", () => {
 
   parts.forEach(part => {
     const d = defaults[part.dataset.part];
+
     part.querySelector(".ratio").value = d.ratio;
     part.querySelector(".armor").value = d.armor;
     part.querySelector(".buffer").value = d.buffer;
