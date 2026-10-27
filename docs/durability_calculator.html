@@ -104,7 +104,7 @@ button:hover { background: #22516e; }
   <h2>機体設定</h2>
 
   <div class="field">
-    <label for="hp">機体HP（パーツ装備前）</label>
+    <label for="hp">機体HP（装備による増加前）</label>
     <input id="hp" type="number" min="1" step="1" value="18000">
   </div>
 
@@ -117,14 +117,13 @@ button:hover { background: #22516e; }
   </div>
 
   <div class="result">
-    <small>パーツ適用後の機体HP</small>
+    <small>コネクティングシステム適用後の機体HP</small>
     <div id="adjusted-hp" class="number">18,000</div>
   </div>
 
   <p class="note">
-    コネクティングシステム［汎用Ⅱ型］を選択すると、
-    機体HPを2,000増加させ、各部位のHPに30%増加を適用します。
-    汎用機向けの効果を想定しています。
+    このツールでは、コネクティングシステム［汎用Ⅱ型］を選ぶと
+    機体HPを2,000増加させ、部位耐久値をさらに30%増加させます。
     シールドHPは計算対象外です。
   </p>
 </section>
@@ -171,17 +170,14 @@ button:hover { background: #22516e; }
         <small>通常耐久値（手動割合）</small>
         <div class="number base">10,800</div>
       </div>
-
       <div class="result">
         <small>パーツ適用後の部位耐久値</small>
         <div class="number part-hp">10,800</div>
       </div>
-
       <div class="result">
         <small>機体HPダメージ軽減率（装甲＋緩衝材）</small>
         <div class="number main-reduction">0%</div>
       </div>
-
       <div class="result">
         <small>緩衝材込みの耐久相当値</small>
         <div class="number effective">10,800</div>
@@ -224,17 +220,14 @@ button:hover { background: #22516e; }
         <small>通常耐久値（手動割合）</small>
         <div class="number base">8,100</div>
       </div>
-
       <div class="result">
         <small>パーツ適用後の部位耐久値</small>
         <div class="number part-hp">8,100</div>
       </div>
-
       <div class="result">
         <small>機体HPダメージ軽減率（装甲＋緩衝材）</small>
         <div class="number main-reduction">0%</div>
       </div>
-
       <div class="result">
         <small>緩衝材込みの耐久相当値</small>
         <div class="number effective">8,100</div>
@@ -274,17 +267,14 @@ button:hover { background: #22516e; }
         <small>通常耐久値（手動割合）</small>
         <div class="number base">5,400</div>
       </div>
-
       <div class="result">
         <small>パーツ適用後の部位耐久値</small>
         <div class="number part-hp">5,400</div>
       </div>
-
       <div class="result">
         <small>機体HPダメージ軽減率（装甲＋緩衝材）</small>
         <div class="number main-reduction">0%</div>
       </div>
-
       <div class="result">
         <small>緩衝材込みの耐久相当値</small>
         <div class="number effective">5,400</div>
@@ -299,23 +289,21 @@ button:hover { background: #22516e; }
 
   <p class="note">
     通常耐久値 ＝ 入力した機体HP × 標準部位耐久割合 ÷ 100<br>
-    パーツ適用後の機体HP ＝ 入力した機体HP ＋ 装備による増加HP<br>
-    部位耐久値 ＝ パーツ適用後の機体HP × 適用部位割合 ÷ 100<br>
-    コネクティングシステム選択時は、部位耐久値にさらに1.3倍を適用<br>
+    適用後の機体HP ＝ 入力した機体HP ＋ コネクティングシステムの増加HP<br>
+    部位耐久値 ＝ 適用後の機体HP × 部位耐久割合 ÷ 100<br>
+    コネクティングシステム選択時は部位耐久値にさらに1.3倍を適用<br>
     緩衝材込みの耐久相当値 ＝ 部位耐久値 ÷（1 − 緩衝材軽減率 ÷ 100）
   </p>
 
   <p class="note">
-    特殊装甲を選ぶと、手動設定した割合ではなく、
-    選択した装甲の部位HP割合を使用します。
-    「なし」にすると手動設定した割合が使われます。
+    特殊装甲を選択すると、その装甲に設定された部位HP割合を使用します。
+    「なし」の場合は手動入力した割合を使用します。
   </p>
 
   <p class="note">
-    機体HPダメージ軽減率は、該当部位に攻撃が命中したときの
-    機体HPへのダメージに適用される値です。
-    部位HPへの負荷軽減は特殊緩衝材の項目で別に計算します。
-    緩衝材込みの耐久相当値は、軽減を考慮した目安です。
+    機体HPダメージ軽減率は、特殊装甲と特殊緩衝材の軽減率を
+    順番に適用して計算します。軽減率は単純加算しません。
+    計算結果の小数点以下は切り捨てます。
   </p>
 
   <button id="reset" type="button">初期設定に戻す</button>
@@ -336,6 +324,7 @@ function calculate() {
   const hp = Math.max(0, Number(hpInput.value) || 0);
   const connecting = connectingSelect.value === "1";
 
+  // 先にコネクティングシステムを適用
   const adjustedHp = hp + (connecting ? 2000 : 0);
   const partMultiplier = connecting ? 1.3 : 1;
 
@@ -358,21 +347,38 @@ function calculate() {
       ? Number(selectedArmor.dataset.ratio)
       : standardRatio;
 
+    // 軽減率は選択した装甲と緩衝材から取得
+    const armorReduction =
+      Math.min(100, Math.max(0,
+        Number(selectedArmor.dataset.main || 0)
+      )) / 100;
+
     const buffer = Math.min(
       99.9,
       Math.max(0, Number(bufferSelect.value) || 0)
     );
 
-    const armorReduction = Number(selectedArmor.dataset.main || 0) / 100;
     const bufferReduction = buffer / 100;
-    // 軽減率を順番に適用する（単純加算しない）
-    const totalReduction = 1 - (1 - armorReduction) * (1 - bufferReduction);
-    
-    const mainReduction  = Math.floor(totalReduction * 10000) / 100;
 
-    const baseHp = hp * standardRatio / 100;
-    const partHp = adjustedHp * appliedRatio / 100 * partMultiplier;
-    const effectiveHp = partHp / (1 - buffer / 100);
+    // 部位耐久値はコネクティングシステム適用後に計算
+    const baseHp = Math.floor(hp * standardRatio / 100);
+
+    const partHp = Math.floor(
+      adjustedHp * appliedRatio / 100 * partMultiplier
+    );
+
+    // 装甲と緩衝材の軽減を順番に適用
+    const totalReduction =
+      1 - (1 - armorReduction) * (1 - bufferReduction);
+
+    // 軽減率は百分率に変換して小数点以下を切り捨て
+    const mainReduction =
+      Math.floor(totalReduction * 100);
+
+    // 緩衝材込みの耐久相当値も小数点以下切り捨て
+    const effectiveHp = Math.floor(
+      partHp / (1 - bufferReduction)
+    );
 
     part.querySelector(".base").textContent = fmt(baseHp);
     part.querySelector(".part-hp").textContent = fmt(partHp);
@@ -399,7 +405,6 @@ document.getElementById("reset").addEventListener("click", () => {
 
   parts.forEach(part => {
     const d = defaults[part.dataset.part];
-
     part.querySelector(".ratio").value = d.ratio;
     part.querySelector(".armor").value = d.armor;
     part.querySelector(".buffer").value = d.buffer;
