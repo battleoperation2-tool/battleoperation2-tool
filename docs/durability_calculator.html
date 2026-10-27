@@ -178,7 +178,7 @@ button:hover { background: #22516e; }
       </div>
 
       <div class="result">
-        <small>機体HPダメージ軽減率（特殊装甲）</small>
+        <small>機体HPダメージ軽減率（装甲＋緩衝材）</small>
         <div class="number main-reduction">0%</div>
       </div>
 
@@ -231,7 +231,7 @@ button:hover { background: #22516e; }
       </div>
 
       <div class="result">
-        <small>機体HPダメージ軽減率（特殊装甲）</small>
+        <small>機体HPダメージ軽減率（装甲＋緩衝材）</small>
         <div class="number main-reduction">0%</div>
       </div>
 
@@ -281,7 +281,7 @@ button:hover { background: #22516e; }
       </div>
 
       <div class="result">
-        <small>機体HPダメージ軽減率（特殊装甲）</small>
+        <small>機体HPダメージ軽減率（装甲＋緩衝材）</small>
         <div class="number main-reduction">0%</div>
       </div>
 
@@ -358,14 +358,17 @@ function calculate() {
       ? Number(selectedArmor.dataset.ratio)
       : standardRatio;
 
-    const mainReduction = Number(
-      selectedArmor.dataset.main || 0
-    );
-
     const buffer = Math.min(
       99.9,
       Math.max(0, Number(bufferSelect.value) || 0)
     );
+
+    const armorReduction = Number(selectedArmor.dataset.main || 0) / 100;
+    const bufferReduction = buffer / 100;
+    // 軽減率を順番に適用する（単純加算しない）
+    const totalReduction = 1 - (1 - armorReduction) * (1 - bufferReduction);
+    
+    const mainReduction  = Math.floor(totalReduction * 10000) / 100;
 
     const baseHp = hp * standardRatio / 100;
     const partHp = adjustedHp * appliedRatio / 100 * partMultiplier;
